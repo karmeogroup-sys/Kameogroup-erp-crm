@@ -1,0 +1,1 @@
+import Shell from "@/components/Shell"; export default function Page(){return <Shell title="Tableau de bord"><p>Bienvenue dans KARMEO ERP/CRM.</p></Shell>}

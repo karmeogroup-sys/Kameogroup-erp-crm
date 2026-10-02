@@ -4,8 +4,18 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return response;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const isLogin = request.nextUrl.pathname === '/login';
+  const isPublicAcademy = request.nextUrl.pathname.startsWith('/academy/access/') || request.nextUrl.pathname.startsWith('/api/academy/access/');
+
+  if (!url || !key) {
+    if (!isLogin && !isPublicAcademy) {
+      const next = request.nextUrl.clone(); next.pathname = '/login';
+      return NextResponse.redirect(next);
+    }
+    return response;
+  }
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -20,8 +30,6 @@ export async function proxy(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims ?? null;
-  const isLogin = request.nextUrl.pathname === '/login';
-  const isPublicAcademy = request.nextUrl.pathname.startsWith('/academy/access/') || request.nextUrl.pathname.startsWith('/api/academy/access/');
   if (!claims && !isLogin && !isPublicAcademy) {
     const next = request.nextUrl.clone(); next.pathname = '/login';
     return NextResponse.redirect(next);
@@ -32,5 +40,4 @@ export async function proxy(request: NextRequest) {
   }
   return response;
 }
-
-export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] };
+export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'] };

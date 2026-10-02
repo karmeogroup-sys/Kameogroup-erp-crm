@@ -1,4 +1,0 @@
-export const money=(n:number)=>new Intl.NumberFormat('fr-FR').format(n)+' FCFA';
-export const demoClients=[{id:'c1',name:'M. Kouassi',phone:'+225 07 00 00 00 01',email:'kouassi@example.com',whatsapp:'+225 07 00 00 00 01'},{id:'c2',name:'Mme Yao',phone:'+225 05 00 00 00 02',email:'yao@example.com',whatsapp:'+225 05 00 00 00 02'}];
-export const demoQuotes=[{id:'q1',number:'DEV-2026-001',client:'M. Kouassi',title:'Pergola premium',total:3500000,status:'sent'},{id:'q2',number:'DEV-2026-002',client:'Mme Yao',title:'Rénovation intérieure',total:5200000,status:'accepted'}];
-export const demoProjects=[{id:'p1',name:'Pergola Kouassi',client:'M. Kouassi',contract:3500000,budget:2300000,spent:1150000,progress:48,status:'active'},{id:'p2',name:'Rénovation Yao',client:'Mme Yao',contract:5200000,budget:3600000,spent:2920000,progress:72,status:'active'}];

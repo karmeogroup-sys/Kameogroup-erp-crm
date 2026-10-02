@@ -1,1 +1,23 @@
-"use client"; import {useState} from "react"; import {supabaseBrowser} from "@/lib/supabase"; export default function Login(){const [email,setEmail]=useState("");const [password,setPassword]=useState("");const [msg,setMsg]=useState("");async function go(e:React.FormEvent){e.preventDefault();const supabase=supabaseBrowser();const {error}=await supabase.auth.signInWithPassword({email,password});if(error)setMsg(error.message);else location.href="/";}return <main className="login"><form onSubmit={go}><h1>KARMEO ERP/CRM</h1><input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)}/><input type="password" placeholder="Mot de passe" value={password} onChange={e=>setPassword(e.target.value)}/><button>Connexion</button><p>{msg}</p></form></main>}
+"use client";
+import { useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState("");
+
+  async function go(e: React.FormEvent) {
+    e.preventDefault();
+    const supabase = supabaseBrowser();
+    if (!supabase) {
+      setMsg("Configuration Supabase indisponible.");
+      return;
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setMsg(error.message);
+    else location.href = "/";
+  }
+
+  return <main className="login"><form onSubmit={go}><h1>KARMEO ERP/CRM</h1><input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)}/><input type="password" placeholder="Mot de passe" value={password} onChange={e=>setPassword(e.target.value)}/><button>Connexion</button><p>{msg}</p></form></main>;
+}

@@ -1,0 +1,19 @@
+<svg width="760" height="430" viewBox="0 0 760 430" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KARMEO GROUP">
+  <g class="mark" stroke="#F5F5F7" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M220 230V100"/>
+    <path d="M220 100L315 58V230"/>
+    <path d="M185 150L455 48L595 118V232"/>
+    <path d="M182 171L454 72"/>
+    <path d="M455 48V230"/>
+    <path d="M165 230H560"/>
+    <path d="M170 132V245"/>
+    <path d="M154 145H192"/>
+    <path d="M515 82V242"/>
+  </g>
+  <path d="M392 112H472V230H392V112Z" fill="#91A0A8"/>
+  <g stroke="#D7AA45" stroke-width="6">
+    <path d="M170 128V230"/><path d="M220 109L455 70"/><path d="M392 86V238"/><path d="M505 62V118"/>
+  </g>
+  <text x="380" y="330" text-anchor="middle" fill="#F5F5F7" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700" letter-spacing="10">KARMEO GROUP</text>
+  <text x="380" y="382" text-anchor="middle" fill="#D7AA45" font-family="Arial, Helvetica, sans-serif" font-size="24" letter-spacing="9">L'ART DE RÉALISER VOS RÊVES</text>
+</svg>

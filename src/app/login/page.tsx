@@ -50,17 +50,11 @@ export default function Login() {
           <h1>Bienvenue</h1>
           <p className="loginIntro">Connectez-vous à votre ERP/CRM KARMEO.</p>
 
-          <label>
-            Adresse e-mail
-            <input type="email" autoComplete="email" placeholder="nom@karmeogroup.com" value={email} onChange={e => setEmail(e.target.value)} required />
-          </label>
-          <label>
-            Mot de passe
-            <input type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
-          </label>
+          <label>Adresse e-mail<div className="loginField"><span className="fieldIcon">✉</span><input type="email" autoComplete="email" placeholder="nom@karmeogroup.com" value={email} onChange={e => setEmail(e.target.value)} required /></div></label>
+          <label>Mot de passe<div className="loginField"><span className="fieldIcon">●</span><input type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required /></div></label>
 
           <button className="premiumLoginButton" disabled={loading}>
-            {loading ? "Connexion..." : "Se connecter"}
+            <span>{loading ? "Connexion..." : "Se connecter"}</span><span className="loginArrow">→</span>
           </button>
           {msg && <p className="loginError">{msg}</p>}
           <div className="secureNote"><span>●</span> Connexion sécurisée · Accès réservé à KARMEO GROUP</div>

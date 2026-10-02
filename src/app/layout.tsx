@@ -1,0 +1,1 @@
+import "./globals.css"; export const metadata={title:"KARMEO ERP CRM",description:"Pilotage KARMEO GROUP"}; export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="fr"><body>{children}</body></html>}

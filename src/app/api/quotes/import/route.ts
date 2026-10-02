@@ -1,0 +1,6 @@
+import{NextResponse}from"next/server";import * as XLSX from"xlsx";import mammoth from"mammoth";
+const num=(v:any)=>Number(String(v??"").replace(/\s/g,"").replace(/FCFA/gi,"").replace(/,/g,"."))||0;
+export async function POST(req:Request){try{const fd=await req.formData(),file=fd.get("file") as File;if(!file)return NextResponse.json({error:"Fichier requis"},{status:400});const buf=Buffer.from(await file.arrayBuffer()),name=file.name.toLowerCase();let rows:any[]=[];
+if(name.endsWith(".xlsx")||name.endsWith(".xls")){const wb=XLSX.read(buf,{type:"buffer"}),ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json<any[]>(ws,{header:1,defval:""});rows=raw.map(r=>({description:String(r[0]||""),quantity:num(r[1])||1,unit_price:num(r[2])})).filter(x=>x.description&&x.unit_price>0)}
+else if(name.endsWith(".docx")){const out=await mammoth.extractRawText({buffer:buf});rows=out.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(s=>{const m=s.match(/^(.*?)[\t;|]+([\d.,]+)[\t;|]+([\d\s.,]+)(?:\s*FCFA)?$/i);return m?{description:m[1].trim(),quantity:num(m[2])||1,unit_price:num(m[3])}:null}).filter(Boolean) as any[]}
+else return NextResponse.json({error:"Format accepté : Word .docx ou Excel .xlsx"},{status:400});return NextResponse.json({items:rows});}catch{return NextResponse.json({error:"Lecture du devis impossible"},{status:400})}}

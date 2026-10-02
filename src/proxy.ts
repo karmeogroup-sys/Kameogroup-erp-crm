@@ -18,7 +18,8 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  const { data: { claims } } = await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims ?? null;
   const isLogin = request.nextUrl.pathname === '/login';
   const isPublicAcademy = request.nextUrl.pathname.startsWith('/academy/access/') || request.nextUrl.pathname.startsWith('/api/academy/access/');
   if (!claims && !isLogin && !isPublicAcademy) {

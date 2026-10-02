@@ -1,0 +1,1 @@
+import Shell from "@/components/Shell"; export default function Page(){return <Shell title="Finance"><p>Module KARMEO — données opérationnelles et pilotage.</p></Shell>}

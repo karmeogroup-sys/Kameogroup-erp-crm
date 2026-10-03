@@ -21,9 +21,9 @@ const nav=[
 ] as const;
 
 export default function Shell({title,children}:{title:string;children:React.ReactNode}){
- const sb=useMemo(()=>supabaseBrowser(),[]),[role,setRole]=useState("");
- useEffect(()=>{(async()=>{if(!sb)return;const{data:{user}}=await sb.auth.getUser();if(!user)return;const{data}=await sb.from("profiles").select("role").eq("id",user.id).maybeSingle();setRole(data?.role||"")})()},[sb]);
+ const sb=useMemo(()=>supabaseBrowser(),[]),[role,setRole]=useState(""),[roleLoaded,setRoleLoaded]=useState(false);
+ useEffect(()=>{(async()=>{if(!sb){setRoleLoaded(true);return}const{data:{user}}=await sb.auth.getUser();if(!user){setRoleLoaded(true);return}const{data}=await sb.from("profiles").select("role").eq("id",user.id).maybeSingle();setRole(data?.role||"");setRoleLoaded(true)})()},[sb]);
  async function logout(){if(sb)await sb.auth.signOut();window.location.href="/login"}
- const visible=nav.filter(([, ,roles])=>!role||roles.includes(role as any));
- return <div className="shell"><aside className="side"><div className="brand">KARMEO<small>ERP / CRM</small></div><nav className="nav">{visible.map(([href,label])=><Link key={href} href={href}>{label}</Link>)}</nav><button className="logout" onClick={logout}>Déconnexion</button></aside><main className="main"><header className="top"><div><span className="eyebrow">KARMEO GROUP</span><h1>{title}</h1></div>{role&&<span className="dashBadge">{role==="direction"?"DIRECTION":role.toUpperCase()}</span>}</header>{children}</main></div>
+ const visible=roleLoaded?nav.filter(([, ,roles])=>roles.includes(role as any)):[];
+ return <div className="shell"><aside className="side"><div className="brand">KARMEO<small>ERP / CRM</small></div><nav className="nav">{visible.map(([href,label])=><Link key={href} href={href}>{label}</Link>)}</nav><button className="logout" onClick={logout}>Déconnexion</button></aside><main className="main"><header className="top"><div><span className="eyebrow">KARMEO GROUP</span><h1>{title}</h1></div>{role&&<span className="dashBadge">{role==="direction"?"DIRECTION":role==="project_manager"?"CHEF DE PROJET":role.toUpperCase()}</span>}</header>{children}</main></div>
 }

@@ -126,3 +126,8 @@
  .quoteLine .removeLine{grid-column:auto;width:100%}
  .quoteTotal span,.quoteTotal strong{flex-wrap:wrap}
 }
+
+/* Mobile-safe modal scrolling: keep long forms fully reachable */
+.modal{overflow-y:auto;overscroll-behavior:contain;align-items:start;place-items:start center;-webkit-overflow-scrolling:touch}
+.modalCard.premiumModal{max-height:none;overflow:visible;margin:auto 0;flex:none}
+@media(max-width:700px){.modal{padding:12px 10px 32px;display:flex;justify-content:center;align-items:flex-start}.modalCard.premiumModal{width:100%;margin:12px 0 40px;padding:20px 16px}.modalCard.premiumModal .goldBtn.full{margin-bottom:8px}}

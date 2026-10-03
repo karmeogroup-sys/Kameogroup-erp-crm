@@ -4,14 +4,16 @@ import Shell from "@/components/Shell";
 import {supabaseBrowser} from "@/lib/supabase";
 
 type Profile={id:string;full_name:string|null;role:string;created_at:string};
-type Log={id:number;entity:string;action:string;created_at:string;entity_id:string|null};\ntype Agent={id:string;display_name:string;active:boolean;created_at:string};
+type Log={id:number;entity:string;action:string;created_at:string;entity_id:string|null};
+type Agent={id:string;display_name:string;active:boolean;created_at:string};
 const roles=[["direction","Direction"],["admin","Administrateur"],["marketing","Marketing"],["commercial","Commercial"],["project_manager","Chef de projet"],["finance","Finance"]];
 
 export default function Administration(){
  const sb=useMemo(()=>supabaseBrowser(),[]),[profiles,setProfiles]=useState<Profile[]>([]),[logs,setLogs]=useState<Log[]>([]),[role,setRole]=useState(""),[msg,setMsg]=useState(""),[agents,setAgents]=useState<Agent[]>([]),[agentOpen,setAgentOpen]=useState(false),[agent,setAgent]=useState({name:"",code:""});
  async function load(){if(!sb)return;const [{data:p},{data:l},{data:a}]=await Promise.all([sb.from("profiles").select("id,full_name,role,created_at").order("created_at"),sb.from("audit_logs").select("id,entity,action,entity_id,created_at").order("created_at",{ascending:false}).limit(12),sb.from("sales_agents").select("id,display_name,active,created_at").order("created_at")]);setProfiles((p??[]) as Profile[]);setLogs((l??[]) as Log[]);setAgents((a??[]) as Agent[]);if(p?.[0])setRole(p[0].role)}
  useEffect(()=>{load()},[]);
- async function changeRole(id:string){if(!sb)return;setMsg("");const {error}=await sb.rpc("admin_set_profile_role",{p_user_id:id,p_role:role});if(error){setMsg("Modification impossible : "+error.message);return}setMsg("Rôle mis à jour.");await load()}\n async function addAgent(e:React.FormEvent){e.preventDefault();if(!sb)return;setMsg("");const{error}=await sb.rpc("admin_create_sales_agent",{p_display_name:agent.name,p_access_code:agent.code});if(error){setMsg("Création impossible : "+error.message);return}setAgent({name:"",code:""});setAgentOpen(false);setMsg("Commercial ajouté.");load()}
+ async function changeRole(id:string){if(!sb)return;setMsg("");const {error}=await sb.rpc("admin_set_profile_role",{p_user_id:id,p_role:role});if(error){setMsg("Modification impossible : "+error.message);return}setMsg("Rôle mis à jour.");await load()}
+ async function addAgent(e:React.FormEvent){e.preventDefault();if(!sb)return;setMsg("");const{error}=await sb.rpc("admin_create_sales_agent",{p_display_name:agent.name,p_access_code:agent.code});if(error){setMsg("Création impossible : "+error.message);return}setAgent({name:"",code:""});setAgentOpen(false);setMsg("Commercial ajouté.");load()}
  return <Shell title="Administration">
   <section className="dashHero"><div><span className="dashBadge">CONSOLE DE GESTION</span><h2>Administration KARMEO</h2><p>Utilisateurs, rôles, sécurité et traçabilité de l’ERP/CRM.</p></div></section>
   {msg&&<p className="notice">{msg}</p>}

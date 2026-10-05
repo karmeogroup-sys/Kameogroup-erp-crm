@@ -9,7 +9,7 @@ const nav=[
  ["/commercial","Commercial",["direction","admin","commercial"]],
  ["/catalogue","Catalogue",["direction","admin","commercial"]],
  ["/clients","Clients",["direction","admin","commercial","finance","project_manager"]],
- ["/chantiers","Chantiers",["direction","admin","project_manager"]],
+ ["/chantiers","Chantiers",["direction","admin","project_manager"]],\n ["/immobilier","Immobilier",["direction","admin","commercial","finance"]],
  ["/finance","Finance",["direction","admin","finance"]],
  ["/recus","Reçus",["direction","admin","finance"]],
  ["/comptabilite","Comptabilité",["direction","admin","finance"]],

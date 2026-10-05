@@ -15,6 +15,7 @@ const nav=[
  ["/recus","Reçus",["direction","admin","finance"]],
  ["/comptabilite","Comptabilité",["direction","admin","finance"]],
  ["/achats","Achats",["direction","admin","project_manager","finance"]],
+ ["/reseau","Réseau & Performance",["direction","admin","commercial","finance","project_manager"]],
  ["/documents","Documents",["direction","admin","project_manager","finance"]],
  ["/rapports","Rapports",["direction","admin","finance"]],
  ["/academy","Academy",["direction","admin"]],

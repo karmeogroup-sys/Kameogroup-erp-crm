@@ -19,7 +19,8 @@ const nav=[
  ["/documents","Documents",["direction","admin","project_manager","finance"]],
  ["/rapports","Rapports",["direction","admin","finance"]],
  ["/academy","Academy",["direction","admin"]],
- ["/administration","Administration",["direction","admin"]]
+ ["/administration","Administration",["direction","admin"]],
+ ["/parametres/identite","Identité entreprise",["direction","admin"]]
 ] as const;
 
 export default function Shell({title,children}:{title:string;children:React.ReactNode}){

@@ -131,3 +131,31 @@
 .modal{overflow-y:auto;overscroll-behavior:contain;align-items:start;place-items:start center;-webkit-overflow-scrolling:touch}
 .modalCard.premiumModal{max-height:none;overflow:visible;margin:auto 0;flex:none}
 @media(max-width:700px){.modal{padding:12px 10px 32px;display:flex;justify-content:center;align-items:flex-start}.modalCard.premiumModal{width:100%;margin:12px 0 40px;padding:20px 16px}.modalCard.premiumModal .goldBtn.full{margin-bottom:8px}}
+
+/* A4 print layout: override mobile stacking and avoid orphaned invoice totals */
+@media print {
+  @page {size:A4 portrait;margin:9mm}
+  html,body{width:auto!important;min-height:0!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .quoteView{min-height:0!important;padding:0!important;margin:0!important;background:#fff!important}
+  .quotePaper{width:100%!important;max-width:none!important;box-sizing:border-box!important;margin:0!important;padding:13px 18px 12px!important;box-shadow:none!important;border-top:3px solid #c99a2e!important;font-size:10px!important}
+  .quotePaperHead{display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:12px!important;padding-bottom:10px!important}
+  .quotePaperHead>div:last-child{text-align:right!important}
+  .quotePaperHead h2{font-size:23px!important;margin:0 0 3px!important}
+  .docBrand img{width:105px!important;max-height:53px!important}
+  .docBrand p{font-size:9px!important;margin:2px 0!important}
+  .quoteParties{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:12px 0!important}
+  .quoteParties>div{padding:9px 11px!important;break-inside:avoid}
+  .quoteParties p{margin:5px 0!important;line-height:1.35!important}
+  .quoteObject{margin:10px 0!important;padding:7px 0!important}
+  .quoteObject h3{font-size:13px!important}
+  .quoteTable{margin:11px 0!important;font-size:10px!important}
+  .quoteTable th,.quoteTable td{padding:6px 7px!important;font-size:9px!important}
+  .quoteTable thead{display:table-header-group}
+  .quoteTable tr{break-inside:avoid}
+  .quoteSummary{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,230px)!important;gap:12px!important;margin-top:12px!important;break-inside:avoid}
+  .quoteSummary>div:last-child span,.quoteSummary>div:last-child>strong{padding:6px 8px!important;font-size:10px!important}
+  .quoteSign{display:grid!important;grid-template-columns:1fr 1fr!important;gap:20px!important;margin:24px 0 12px!important;break-inside:avoid}
+  .quoteSign>div{min-height:50px!important;padding-top:6px!important}
+  .quotePaper footer{font-size:7px!important;padding-top:8px!important;letter-spacing:0!important;line-height:1.4!important;overflow-wrap:anywhere}
+  .receiptAmount{break-inside:avoid}
+}

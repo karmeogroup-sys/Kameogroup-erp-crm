@@ -1,0 +1,18 @@
+"use client";
+import {useEffect,useState} from "react";
+import Link from "next/link";
+import {supabaseBrowser} from "@/lib/supabase";
+export default function ResetPassword(){
+ const [ready,setReady]=useState(false),[password,setPassword]=useState(""),[confirm,setConfirm]=useState(""),[visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[done,setDone]=useState(false);
+ useEffect(()=>{const sb=supabaseBrowser();if(!sb){setMessage("Configuration indisponible.");return;}
+ let active=true; const check=async()=>{const hash=new URLSearchParams(location.hash.slice(1));if(hash.get("error")){setMessage("Lien expiré ou invalide. Demandez un nouveau lien.");return;}
+ const access=hash.get("access_token"),refresh=hash.get("refresh_token");if(access&&refresh){const {error}=await sb.auth.setSession({access_token:access,refresh_token:refresh});if(error){setMessage("Lien invalide ou expiré.");return;}history.replaceState(null,"",location.pathname);if(active)setReady(true);return;}
+ const code=new URLSearchParams(location.search).get("code");if(code){const {error}=await sb.auth.exchangeCodeForSession(code);if(error){setMessage("Lien invalide ou expiré.");return;}history.replaceState(null,"",location.pathname);if(active)setReady(true);return;}
+ const {data}=await sb.auth.getSession();if(active){if(data.session)setReady(true);else setMessage("Aucune session de récupération valide. Demandez un nouveau lien depuis la connexion.");}};
+ void check();return()=>{active=false;};},[]);
+ async function submit(e:React.FormEvent){e.preventDefault();if(password.length<12){setMessage("Choisissez au moins 12 caractères.");return;}if(password!==confirm){setMessage("Les mots de passe ne correspondent pas.");return;}
+ const sb=supabaseBrowser();if(!sb)return;setBusy(true);setMessage("");const {error}=await sb.auth.updateUser({password});if(error)setMessage("Modification impossible. Demandez un nouveau lien et réessayez.");else{await sb.auth.signOut();setDone(true);setMessage("Mot de passe modifié. Vous pouvez vous connecter.");}setBusy(false);}
+ return <main className="premiumLogin"><div className="loginGlow loginGlowOne"/><section className="loginFormPanel" style={{margin:"auto"}}><form className="premiumLoginCard" onSubmit={submit}><div className="mobileLogo"><img src="/karmeo-logo.svg" alt="KARMEO GROUP"/></div><span className="eyebrow gold">ACCÈS SÉCURISÉ</span><h1>Nouveau mot de passe</h1><p className="loginIntro">Définissez votre nouveau mot de passe KARMEO.</p>
+ {ready&&!done&&<><label>Nouveau mot de passe<div className="loginField"><input type={visible?"text":"password"} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={12}/><button type="button" onClick={()=>setVisible(!visible)} aria-label={visible?"Masquer le mot de passe":"Afficher le mot de passe"} style={{background:"none",border:0,color:"#d6ad51",padding:"10px"}}>{visible?"Masquer":"Afficher"}</button></div></label><label>Confirmer le mot de passe<div className="loginField"><input type={visible?"text":"password"} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} required minLength={12}/></div></label><button className="premiumLoginButton" disabled={busy}>{busy?"Enregistrement...":"Enregistrer le mot de passe"}</button></>}
+ {message&&<p className="loginError" role="status">{message}</p>}<p style={{marginTop:18}}><Link href="/login" style={{color:"#d6ad51"}}>Retour à la connexion</Link></p></form></section></main>;
+}

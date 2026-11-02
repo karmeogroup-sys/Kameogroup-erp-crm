@@ -1,0 +1,6 @@
+export type CalendarMode="mon_sat"|"calendar";
+export function dateAtUTC(value:string){return new Date(value.slice(0,10)+"T12:00:00Z")}
+export function dateISO(d:Date){return d.toISOString().slice(0,10)}
+export function advanceDays(start:string,days:number,mode:CalendarMode="mon_sat"){const d=dateAtUTC(start);let remaining=Math.max(0,Math.floor(days));while(remaining>0){d.setUTCDate(d.getUTCDate()+1);if(mode==="calendar"||d.getUTCDay()!==0)remaining--}return dateISO(d)}
+export function workingDaysBetween(start:string,end:string,mode:CalendarMode="mon_sat"){if(!start||!end||end<start)return 0;let count=0,d=start;while(d<=end&&count<2000){if(mode==="calendar"||dateAtUTC(d).getUTCDay()!==0)count++;d=advanceDays(d,1,"calendar")}return count}
+export function generateSchedule(start:string,days:number,titles:string[],mode:CalendarMode="mon_sat"){const clean=titles.map(x=>x.trim()).filter(Boolean);if(!clean.length||days<1)return [];const n=Math.min(clean.length,days),result:{title:string;start_date:string;planned_end_date:string;due_date:string;sequence_no:number}[]=[];let cursor=start;for(let i=0;i<n;i++){const allot=Math.floor(days/n)+(i<days%n?1:0),end=advanceDays(cursor,allot-1,mode);result.push({title:clean[i],start_date:cursor,planned_end_date:end,due_date:end,sequence_no:i+1});cursor=advanceDays(end,1,mode)}return result}

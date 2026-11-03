@@ -1,8 +1,6 @@
 -- Proposition de liaison comptable : UNE écriture débit par paiement confirmé.
 -- À intégrer à une migration revue, après verrouillage des accès en écriture.
-create unique index if not exists accounting_entries_re_acquisition_payment_ref_unique
- on public.accounting_entries(reference)
- where reference like 'RE_ACQ_PAYMENT:%';
+-- L'index existant accounting_entries_reference_unique garantit déjà l'unicité des références non nulles.
 
 create or replace function public.re_sync_acquisition_payment_accounting()
 returns trigger language plpgsql security definer
@@ -17,7 +15,7 @@ begin
  values(new.payment_date,'debit','Acquisition immobilière',
  'Versement acquisition '||new.acquisition_id::text,new.amount,
  'RE_ACQ_PAYMENT:'||new.id::text,new.external_reference,new.created_by)
- on conflict (reference) where reference like 'RE_ACQ_PAYMENT:%' do nothing;\n if not found then\n  raise exception 'Écriture comptable déjà existante pour ce paiement';\n end if;
+;
  return new;
 end; $$;
 revoke all on function public.re_sync_acquisition_payment_accounting() from public,anon,authenticated;

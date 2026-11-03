@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import Shell from "@/components/Shell";
-import {supabaseBrowser} from "@/lib/supabase";
+import {supabaseBrowser} from "@/lib/supabase";\nimport {acquisitionBalance,canIssueFullPaymentCertificate} from "@/lib/immobilier-finance";
 
 type Acquisition={id:string;asset_id:string;seller_name:string;contract_price:number;status:string;created_at:string};
 type Asset={id:string;code:string;designation:string;purpose:string;location:string;serviced:boolean};
@@ -58,7 +58,7 @@ export default function AcquisitionsPage(){
  }
  const paid=(id:string)=>payments.filter(p=>p.acquisition_id===id&&p.status==="confirme").reduce((s,p)=>s+Number(p.amount),0);
  const total=acquisitions.reduce((s,a)=>s+Number(a.contract_price),0);
- const remaining=acquisitions.reduce((s,a)=>s+Math.max(0,Number(a.contract_price)-paid(a.id)),0);
+ const remaining=acquisitions.reduce((s,a)=>{try{return s+acquisitionBalance(a.contract_price,payments.filter(p=>p.acquisition_id===a.id));}catch{return s+Number(a.contract_price);}},0);
  return <Shell title="Acquisitions immobilières">
   <section className="crmHero"><div><span className="dashBadge">IMMOBILIER · ACQUISITIONS</span><h2>Acquisitions & patrimoine</h2><p>Terrains viabilisés ou non, acquisitions pour revente et patrimoine conservé.</p></div><Link className="miniBtn" href="/immobilier">← Immobilier</Link></section>
   <section className="crmStats"><article><span>Dossiers</span><strong>{acquisitions.length}</strong></article><article><span>Engagements contractuels</span><strong>{money(total)}</strong></article><article><span>Restant à payer</span><strong>{money(remaining)}</strong></article><article><span>Versements confirmés</span><strong>{money(total-remaining)}</strong></article></section>
@@ -72,7 +72,7 @@ export default function AcquisitionsPage(){
     <small>{asset?.location||"Localisation non renseignée"} · {a.status}</small>
     <p>Prix : {money(Number(a.contract_price))} · Versé : {money(p)} · <b>Solde : {money(balance)}</b></p>
     {next&&<small>Première échéance prévue : {next.due_date}</small>}\n    {payments.filter(x=>x.acquisition_id===a.id&&x.status==="confirme"&&x.receipt_number).map(x=><button key={x.id} type="button" className="miniBtn" style={{marginRight:8,marginTop:8}} onClick={()=>printDocument(a,x)}>Imprimer reçu {x.receipt_number}</button>)}
-    {balance===0&&a.status==="soldee"&&<button type="button" className="miniBtn" onClick={()=>printDocument(a)}>Attestation de paiement intégral</button>}
+    {canIssueFullPaymentCertificate(a.contract_price,payments.filter(x=>x.acquisition_id===a.id),a.status)&&<button type="button" className="miniBtn" onClick={()=>printDocument(a)}>Attestation de paiement intégral</button>}
     <div style={{marginTop:12}}><button className="miniBtn" onClick={()=>{setActive(active===a.id?null:a.id);setEntry({kind:"echeance",amount:"",date:new Date().toISOString().slice(0,10),reference:""});}}>Échéancier / versement</button></div>\n    {active===a.id&&<form onSubmit={submitEntry} style={{display:"grid",gap:8,maxWidth:480,marginTop:12}}><label>Opération<select value={entry.kind} onChange={e=>setEntry({...entry,kind:e.target.value})}><option value="echeance">Ajouter une échéance</option><option value="versement">Enregistrer un versement confirmé</option></select></label><label>Montant FCFA<input required type="number" min="1" step="1" value={entry.amount} onChange={e=>setEntry({...entry,amount:e.target.value})}/></label><label>Date<input required type="date" value={entry.date} onChange={e=>setEntry({...entry,date:e.target.value})}/></label>{entry.kind==="versement"&&<label>Référence bancaire / transaction<input required minLength={3} value={entry.reference} onChange={e=>setEntry({...entry,reference:e.target.value})}/></label>}<button className="btn goldBtn" disabled={saving}>{saving?"Enregistrement…":"Valider l’opération"}</button></form>}
    </article>;
   })}</section>}

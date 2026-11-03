@@ -54,7 +54,7 @@ export default function AcquisitionsPage(){
   const w=window.open("","_blank");
   if(!w){setError("Autorisez les fenêtres contextuelles pour imprimer.");return;}
   const title=payment?"REÇU DE VERSEMENT":"ATTESTATION DE PAIEMENT INTÉGRAL";
-  const lines=[
+  const lines: Array<[string, string | undefined | null]>=[
    ["Référence du bien",asset?.code],["Désignation",asset?.designation],["Localisation",asset?.location],
    ["Vendeur",a.seller_name],["Prix contractuel",money(Number(a.contract_price))],
    ["Total des versements confirmés",money(totalPaid)],["Solde restant",money(Math.max(0,Number(a.contract_price)-totalPaid))]

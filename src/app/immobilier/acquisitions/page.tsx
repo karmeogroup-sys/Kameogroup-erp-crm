@@ -2,7 +2,8 @@
 import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import Shell from "@/components/Shell";
-import {supabaseBrowser} from "@/lib/supabase";\nimport {acquisitionBalance,canIssueFullPaymentCertificate} from "@/lib/immobilier-finance";
+import {supabaseBrowser} from "@/lib/supabase";
+import {acquisitionBalance,canIssueFullPaymentCertificate} from "@/lib/immobilier-finance";
 
 type Acquisition={id:string;asset_id:string;seller_name:string;contract_price:number;status:string;created_at:string};
 type Asset={id:string;code:string;designation:string;purpose:string;location:string;serviced:boolean};
@@ -17,7 +18,14 @@ export default function AcquisitionsPage(){
  const [payments,setPayments]=useState<Payment[]>([]);
  const [installments,setInstallments]=useState<Installment[]>([]);
  const [error,setError]=useState("");
- const [loading,setLoading]=useState(true);\n const [form,setForm]=useState({code:"",designation:"",purpose:"revente",location:"",seller:"",price:"",area:"",serviced:false});\n const [saving,setSaving]=useState(false);\n const [active,setActive]=useState<string|null>(null);\n const [entry,setEntry]=useState({kind:"echeance",amount:"",date:new Date().toISOString().slice(0,10),reference:""});\n async function submitEntry(e:React.FormEvent){e.preventDefault();if(!sb||!active||saving)return;const amount=Number(entry.amount);if(!Number.isSafeInteger(amount)||amount<=0){setError("Montant FCFA invalide.");return;}setSaving(true);setError("");const result=entry.kind==="echeance"?await sb.rpc("re_add_installment",{p_acquisition_id:active,p_due_date:entry.date,p_amount:amount}):await sb.rpc("re_record_acquisition_payment",{p_acquisition_id:active,p_amount:amount,p_payment_date:entry.date,p_reference:entry.reference.trim()});setSaving(false);if(result.error){setError(result.error.message);return;}window.location.reload();}\n\n async function createAcquisition(e:React.FormEvent){e.preventDefault();if(!sb||saving)return;setSaving(true);setError("");const {error:err}=await sb.rpc("re_create_acquisition",{p_code:form.code.trim(),p_designation:form.designation.trim(),p_purpose:form.purpose,p_location:form.location.trim(),p_serviced:form.serviced,p_seller_name:form.seller.trim(),p_price:Number(form.price),p_area:form.area?Number(form.area):null,p_supplier_id:null});setSaving(false);if(err){setError(err.message);return;}window.location.reload();}
+ const [loading,setLoading]=useState(true);
+ const [form,setForm]=useState({code:"",designation:"",purpose:"revente",location:"",seller:"",price:"",area:"",serviced:false});
+ const [saving,setSaving]=useState(false);
+ const [active,setActive]=useState<string|null>(null);
+ const [entry,setEntry]=useState({kind:"echeance",amount:"",date:new Date().toISOString().slice(0,10),reference:""});
+ async function submitEntry(e:React.FormEvent){e.preventDefault();if(!sb||!active||saving)return;const amount=Number(entry.amount);if(!Number.isSafeInteger(amount)||amount<=0){setError("Montant FCFA invalide.");return;}setSaving(true);setError("");const result=entry.kind==="echeance"?await sb.rpc("re_add_installment",{p_acquisition_id:active,p_due_date:entry.date,p_amount:amount}):await sb.rpc("re_record_acquisition_payment",{p_acquisition_id:active,p_amount:amount,p_payment_date:entry.date,p_reference:entry.reference.trim()});setSaving(false);if(result.error){setError(result.error.message);return;}window.location.reload();}
+
+ async function createAcquisition(e:React.FormEvent){e.preventDefault();if(!sb||saving)return;setSaving(true);setError("");const {error:err}=await sb.rpc("re_create_acquisition",{p_code:form.code.trim(),p_designation:form.designation.trim(),p_purpose:form.purpose,p_location:form.location.trim(),p_serviced:form.serviced,p_seller_name:form.seller.trim(),p_price:Number(form.price),p_area:form.area?Number(form.area):null,p_supplier_id:null});setSaving(false);if(err){setError(err.message);return;}window.location.reload();}
  useEffect(()=>{
   let active=true;
   (async()=>{
@@ -71,9 +79,11 @@ export default function AcquisitionsPage(){
     <p>Vendeur : {a.seller_name} · {asset?.purpose==="patrimoine"?"Patrimoine":"Revente"} · {asset?.serviced?"Viabilisé":"Non viabilisé"}</p>
     <small>{asset?.location||"Localisation non renseignée"} · {a.status}</small>
     <p>Prix : {money(Number(a.contract_price))} · Versé : {money(p)} · <b>Solde : {money(balance)}</b></p>
-    {next&&<small>Première échéance prévue : {next.due_date}</small>}\n    {payments.filter(x=>x.acquisition_id===a.id&&x.status==="confirme"&&x.receipt_number).map(x=><button key={x.id} type="button" className="miniBtn" style={{marginRight:8,marginTop:8}} onClick={()=>printDocument(a,x)}>Imprimer reçu {x.receipt_number}</button>)}
+    {next&&<small>Première échéance prévue : {next.due_date}</small>}
+    {payments.filter(x=>x.acquisition_id===a.id&&x.status==="confirme"&&x.receipt_number).map(x=><button key={x.id} type="button" className="miniBtn" style={{marginRight:8,marginTop:8}} onClick={()=>printDocument(a,x)}>Imprimer reçu {x.receipt_number}</button>)}
     {canIssueFullPaymentCertificate(a.contract_price,payments.filter(x=>x.acquisition_id===a.id),a.status)&&<button type="button" className="miniBtn" onClick={()=>printDocument(a)}>Attestation de paiement intégral</button>}
-    <div style={{marginTop:12}}><button className="miniBtn" onClick={()=>{setActive(active===a.id?null:a.id);setEntry({kind:"echeance",amount:"",date:new Date().toISOString().slice(0,10),reference:""});}}>Échéancier / versement</button></div>\n    {active===a.id&&<form onSubmit={submitEntry} style={{display:"grid",gap:8,maxWidth:480,marginTop:12}}><label>Opération<select value={entry.kind} onChange={e=>setEntry({...entry,kind:e.target.value})}><option value="echeance">Ajouter une échéance</option><option value="versement">Enregistrer un versement confirmé</option></select></label><label>Montant FCFA<input required type="number" min="1" step="1" value={entry.amount} onChange={e=>setEntry({...entry,amount:e.target.value})}/></label><label>Date<input required type="date" value={entry.date} onChange={e=>setEntry({...entry,date:e.target.value})}/></label>{entry.kind==="versement"&&<label>Référence bancaire / transaction<input required minLength={3} value={entry.reference} onChange={e=>setEntry({...entry,reference:e.target.value})}/></label>}<button className="btn goldBtn" disabled={saving}>{saving?"Enregistrement…":"Valider l’opération"}</button></form>}
+    <div style={{marginTop:12}}><button className="miniBtn" onClick={()=>{setActive(active===a.id?null:a.id);setEntry({kind:"echeance",amount:"",date:new Date().toISOString().slice(0,10),reference:""});}}>Échéancier / versement</button></div>
+    {active===a.id&&<form onSubmit={submitEntry} style={{display:"grid",gap:8,maxWidth:480,marginTop:12}}><label>Opération<select value={entry.kind} onChange={e=>setEntry({...entry,kind:e.target.value})}><option value="echeance">Ajouter une échéance</option><option value="versement">Enregistrer un versement confirmé</option></select></label><label>Montant FCFA<input required type="number" min="1" step="1" value={entry.amount} onChange={e=>setEntry({...entry,amount:e.target.value})}/></label><label>Date<input required type="date" value={entry.date} onChange={e=>setEntry({...entry,date:e.target.value})}/></label>{entry.kind==="versement"&&<label>Référence bancaire / transaction<input required minLength={3} value={entry.reference} onChange={e=>setEntry({...entry,reference:e.target.value})}/></label>}<button className="btn goldBtn" disabled={saving}>{saving?"Enregistrement…":"Valider l’opération"}</button></form>}
    </article>;
   })}</section>}
   {!loading&&!error&&<section className="crmEmpty" style={{textAlign:"left"}}><h3>Nouvelle acquisition</h3><form onSubmit={createAcquisition} style={{display:"grid",gap:12,maxWidth:650}}>

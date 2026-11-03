@@ -18,6 +18,7 @@ export default function AcquisitionsPage(){
  const [payments,setPayments]=useState<Payment[]>([]);
  const [installments,setInstallments]=useState<Installment[]>([]);
  const [error,setError]=useState("");
+ const [dataError,setDataError]=useState("");
  const [loading,setLoading]=useState(true);
  const [form,setForm]=useState({code:"",designation:"",purpose:"revente",location:"",seller:"",price:"",area:"",serviced:false});
  const [saving,setSaving]=useState(false);
@@ -38,7 +39,7 @@ export default function AcquisitionsPage(){
    ]);
    if(!active)return;
    const failure=results.find(r=>r.error);
-   if(failure?.error)setError("Données indisponibles : "+failure.error.message);
+   if(failure?.error)setDataError("Données indisponibles : "+failure.error.message);
    else{setAcquisitions(results[0].data||[]);setAssets(results[1].data||[]);setPayments(results[2].data||[]);setInstallments(results[3].data||[]);}
    setLoading(false);
   })();
@@ -66,14 +67,17 @@ export default function AcquisitionsPage(){
  }
  const paid=(id:string)=>payments.filter(p=>p.acquisition_id===id&&p.status==="confirme").reduce((s,p)=>s+Number(p.amount),0);
  const total=acquisitions.reduce((s,a)=>s+Number(a.contract_price),0);
- const remaining=acquisitions.reduce((s,a)=>{try{return s+acquisitionBalance(a.contract_price,payments.filter(p=>p.acquisition_id===a.id));}catch{return s+Number(a.contract_price);}},0);
+ const inconsistent=acquisitions.some(a=>{try{acquisitionBalance(a.contract_price,payments.filter(p=>p.acquisition_id===a.id));return false;}catch{return true;}});
+ const remaining=inconsistent?null:acquisitions.reduce((s,a)=>s+acquisitionBalance(a.contract_price,payments.filter(p=>p.acquisition_id===a.id)),0);
  return <Shell title="Acquisitions immobilières">
   <section className="crmHero"><div><span className="dashBadge">IMMOBILIER · ACQUISITIONS</span><h2>Acquisitions & patrimoine</h2><p>Terrains viabilisés ou non, acquisitions pour revente et patrimoine conservé.</p></div><Link className="miniBtn" href="/immobilier">← Immobilier</Link></section>
-  <section className="crmStats"><article><span>Dossiers</span><strong>{acquisitions.length}</strong></article><article><span>Engagements contractuels</span><strong>{money(total)}</strong></article><article><span>Restant à payer</span><strong>{money(remaining)}</strong></article><article><span>Versements confirmés</span><strong>{money(total-remaining)}</strong></article></section>
-  {loading?<p>Chargement des acquisitions…</p>:error?<section className="crmEmpty"><strong>Module en préparation</strong><p role="alert">{error}</p><p>Les migrations et contrôles de paiement doivent être validés avant toute saisie.</p></section>:
+  {inconsistent&&<p role="alert">Anomalie de rapprochement : au moins une acquisition présente des montants incohérents. Vérification financière requise.</p>}
+  {error&&<p role="alert" style={{color:"#b42318",padding:12}}>{error}</p>}
+  <section className="crmStats"><article><span>Dossiers</span><strong>{acquisitions.length}</strong></article><article><span>Engagements contractuels</span><strong>{money(total)}</strong></article><article><span>Restant à payer</span><strong>{remaining===null?"À vérifier":money(remaining)}</strong></article><article><span>Versements confirmés</span><strong>{remaining===null?"À vérifier":money(total-remaining)}</strong></article></section>
+  {loading?<p>Chargement des acquisitions…</p>:dataError?<section className="crmEmpty"><strong>Module en préparation</strong><p role="alert">{dataError}</p><p>Les migrations et contrôles de paiement doivent être validés avant toute saisie.</p></section>:
   <section className="crmEmpty" style={{textAlign:"left"}}><h3>Dossiers d'acquisition</h3>
   {!acquisitions.length?<p>Aucune acquisition enregistrée.</p>:acquisitions.map(a=>{
-   const asset=assets.find(x=>x.id===a.asset_id),p=paid(a.id),balance=Math.max(0,Number(a.contract_price)-p),next=installments.filter(i=>i.acquisition_id===a.id).sort((x,y)=>x.due_date.localeCompare(y.due_date))[0];
+   const asset=assets.find(x=>x.id===a.asset_id),p=paid(a.id),balance=Number(a.contract_price)-p,next=installments.filter(i=>i.acquisition_id===a.id).sort((x,y)=>x.due_date.localeCompare(y.due_date))[0];
    return <article className="prospectCard" key={a.id} style={{marginTop:12}}>
     <strong>{asset?.code||"Sans référence"} · {asset?.designation||"Bien immobilier"}</strong>
     <p>Vendeur : {a.seller_name} · {asset?.purpose==="patrimoine"?"Patrimoine":"Revente"} · {asset?.serviced?"Viabilisé":"Non viabilisé"}</p>
@@ -81,12 +85,12 @@ export default function AcquisitionsPage(){
     <p>Prix : {money(Number(a.contract_price))} · Versé : {money(p)} · <b>Solde : {money(balance)}</b></p>
     {next&&<small>Première échéance prévue : {next.due_date}</small>}
     {payments.filter(x=>x.acquisition_id===a.id&&x.status==="confirme"&&x.receipt_number).map(x=><button key={x.id} type="button" className="miniBtn" style={{marginRight:8,marginTop:8}} onClick={()=>printDocument(a,x)}>Imprimer reçu {x.receipt_number}</button>)}
-    {canIssueFullPaymentCertificate(a.contract_price,payments.filter(x=>x.acquisition_id===a.id),a.status)&&<button type="button" className="miniBtn" onClick={()=>printDocument(a)}>Attestation de paiement intégral</button>}
+    {!inconsistent&&canIssueFullPaymentCertificate(a.contract_price,payments.filter(x=>x.acquisition_id===a.id),a.status)&&<button type="button" className="miniBtn" onClick={()=>printDocument(a)}>Attestation de paiement intégral</button>}
     <div style={{marginTop:12}}><button className="miniBtn" onClick={()=>{setActive(active===a.id?null:a.id);setEntry({kind:"echeance",amount:"",date:new Date().toISOString().slice(0,10),reference:""});}}>Échéancier / versement</button></div>
     {active===a.id&&<form onSubmit={submitEntry} style={{display:"grid",gap:8,maxWidth:480,marginTop:12}}><label>Opération<select value={entry.kind} onChange={e=>setEntry({...entry,kind:e.target.value})}><option value="echeance">Ajouter une échéance</option><option value="versement">Enregistrer un versement confirmé</option></select></label><label>Montant FCFA<input required type="number" min="1" step="1" value={entry.amount} onChange={e=>setEntry({...entry,amount:e.target.value})}/></label><label>Date<input required type="date" value={entry.date} onChange={e=>setEntry({...entry,date:e.target.value})}/></label>{entry.kind==="versement"&&<label>Référence bancaire / transaction<input required minLength={3} value={entry.reference} onChange={e=>setEntry({...entry,reference:e.target.value})}/></label>}<button className="btn goldBtn" disabled={saving}>{saving?"Enregistrement…":"Valider l’opération"}</button></form>}
    </article>;
   })}</section>}
-  {!loading&&!error&&<section className="crmEmpty" style={{textAlign:"left"}}><h3>Nouvelle acquisition</h3><form onSubmit={createAcquisition} style={{display:"grid",gap:12,maxWidth:650}}>
+  {!loading&&!dataError&&<section className="crmEmpty" style={{textAlign:"left"}}><h3>Nouvelle acquisition</h3><form onSubmit={createAcquisition} style={{display:"grid",gap:12,maxWidth:650}}>
   <label>Référence du bien<input required minLength={2} value={form.code} onChange={e=>setForm({...form,code:e.target.value})}/></label>
   <label>Désignation<input required minLength={2} value={form.designation} onChange={e=>setForm({...form,designation:e.target.value})}/></label>
   <label>Destination<select value={form.purpose} onChange={e=>setForm({...form,purpose:e.target.value})}><option value="revente">Revente</option><option value="patrimoine">Patrimoine</option></select></label>

@@ -17,7 +17,7 @@ export default function AcquisitionsPage(){
  const [payments,setPayments]=useState<Payment[]>([]);
  const [installments,setInstallments]=useState<Installment[]>([]);
  const [error,setError]=useState("");
- const [loading,setLoading]=useState(true);
+ const [loading,setLoading]=useState(true);\n const [form,setForm]=useState({code:"",designation:"",purpose:"revente",location:"",seller:"",price:"",area:"",serviced:false});\n const [saving,setSaving]=useState(false);\n async function createAcquisition(e:React.FormEvent){e.preventDefault();if(!sb||saving)return;setSaving(true);setError("");const {error:err}=await sb.rpc("re_create_acquisition",{p_code:form.code.trim(),p_designation:form.designation.trim(),p_purpose:form.purpose,p_location:form.location.trim(),p_serviced:form.serviced,p_seller_name:form.seller.trim(),p_price:Number(form.price),p_area:form.area?Number(form.area):null,p_supplier_id:null});setSaving(false);if(err){setError(err.message);return;}window.location.reload();}
  useEffect(()=>{
   let active=true;
   (async()=>{
@@ -54,6 +54,17 @@ export default function AcquisitionsPage(){
     {next&&<small>Première échéance prévue : {next.due_date}</small>}
    </article>;
   })}</section>}
+  {!loading&&!error&&<section className="crmEmpty" style={{textAlign:"left"}}><h3>Nouvelle acquisition</h3><form onSubmit={createAcquisition} style={{display:"grid",gap:12,maxWidth:650}}>
+  <label>Référence du bien<input required minLength={2} value={form.code} onChange={e=>setForm({...form,code:e.target.value})}/></label>
+  <label>Désignation<input required minLength={2} value={form.designation} onChange={e=>setForm({...form,designation:e.target.value})}/></label>
+  <label>Destination<select value={form.purpose} onChange={e=>setForm({...form,purpose:e.target.value})}><option value="revente">Revente</option><option value="patrimoine">Patrimoine</option></select></label>
+  <label>Localisation<input value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/></label>
+  <label>Vendeur<input required minLength={2} value={form.seller} onChange={e=>setForm({...form,seller:e.target.value})}/></label>
+  <label>Prix contractuel (FCFA)<input required type="number" min="1" step="1" value={form.price} onChange={e=>setForm({...form,price:e.target.value})}/></label>
+  <label>Superficie (m²)<input type="number" min="0.01" step="0.01" value={form.area} onChange={e=>setForm({...form,area:e.target.value})}/></label>
+  <label><input type="checkbox" checked={form.serviced} onChange={e=>setForm({...form,serviced:e.target.checked})}/> Terrain viabilisé</label>
+  <button className="btn goldBtn" disabled={saving}>{saving?"Enregistrement…":"Créer l'acquisition"}</button>
+ </form></section>}
   <section className="crmEmpty" style={{textAlign:"left"}}><strong>Sécurité documentaire</strong><p>Les reçus ne sont délivrés qu'après confirmation du paiement. L'attestation de paiement intégral exige un solde nul. La cession foncière nécessite une validation juridique distincte.</p></section>
  </Shell>;
 }

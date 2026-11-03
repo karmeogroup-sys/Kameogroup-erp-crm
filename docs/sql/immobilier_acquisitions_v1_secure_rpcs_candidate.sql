@@ -74,7 +74,7 @@ begin
 end $$;
 revoke all on function re_internal.record_payment(uuid,numeric,date,text) from public,anon,authenticated;
 
--- API publique limitée aux trois points d'entrée ; aucun accès direct aux tables.
+-- API publique limitée aux trois points d'entrée ; aucun accès direct aux tables.\n-- Les wrappers sont SECURITY DEFINER car ils doivent appeler des fonctions internes\n-- non exécutables par authenticated. L'autorisation est contrôlée dans assert_role.\n-- À valider avec tests de rôles et audit de privilèges avant déploiement.
 create or replace function public.re_create_acquisition(
  p_code text,p_designation text,p_purpose text,p_location text,p_serviced boolean,
  p_seller_name text,p_price numeric,p_area numeric default null,p_supplier_id uuid default null)

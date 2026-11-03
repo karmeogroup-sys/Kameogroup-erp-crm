@@ -50,7 +50,7 @@ export default function AcquisitionsPage(){
   const asset=assets.find(x=>x.id===a.asset_id),confirmed=payments.filter(x=>x.acquisition_id===a.id&&x.status==="confirme");
   const totalPaid=confirmed.reduce((s,x)=>s+Number(x.amount),0);
   if(payment&&(!payment.receipt_number||payment.status!=="confirme")){setError("Reçu indisponible : versement non confirmé.");return;}
-  if(!payment&&(totalPaid!==Number(a.contract_price)||a.status!=="soldee")){setError("Attestation indisponible : acquisition non soldée.");return;}
+  if(!payment&&!(function(){try{return canIssueFullPaymentCertificate(a.contract_price,confirmed,a.status);}catch{return false;}})()){setError("Attestation indisponible : acquisition non soldée.");return;}
   const w=window.open("","_blank");
   if(!w){setError("Autorisez les fenêtres contextuelles pour imprimer.");return;}
   const title=payment?"REÇU DE VERSEMENT":"ATTESTATION DE PAIEMENT INTÉGRAL";
@@ -85,7 +85,7 @@ export default function AcquisitionsPage(){
     <p>Prix : {money(Number(a.contract_price))} · Versé : {money(p)} · <b>Solde : {money(balance)}</b></p>
     {next&&<small>Première échéance prévue : {next.due_date}</small>}
     {payments.filter(x=>x.acquisition_id===a.id&&x.status==="confirme"&&x.receipt_number).map(x=><button key={x.id} type="button" className="miniBtn" style={{marginRight:8,marginTop:8}} onClick={()=>printDocument(a,x)}>Imprimer reçu {x.receipt_number}</button>)}
-    {!inconsistent&&canIssueFullPaymentCertificate(a.contract_price,payments.filter(x=>x.acquisition_id===a.id),a.status)&&<button type="button" className="miniBtn" onClick={()=>printDocument(a)}>Attestation de paiement intégral</button>}
+    {(()=>{try{return canIssueFullPaymentCertificate(a.contract_price,payments.filter(x=>x.acquisition_id===a.id),a.status);}catch{return false;}})()&&<button type="button" className="miniBtn" onClick={()=>printDocument(a)}>Attestation de paiement intégral</button>}
     <div style={{marginTop:12}}><button className="miniBtn" onClick={()=>{setActive(active===a.id?null:a.id);setEntry({kind:"echeance",amount:"",date:new Date().toISOString().slice(0,10),reference:""});}}>Échéancier / versement</button></div>
     {active===a.id&&<form onSubmit={submitEntry} style={{display:"grid",gap:8,maxWidth:480,marginTop:12}}><label>Opération<select value={entry.kind} onChange={e=>setEntry({...entry,kind:e.target.value})}><option value="echeance">Ajouter une échéance</option><option value="versement">Enregistrer un versement confirmé</option></select></label><label>Montant FCFA<input required type="number" min="1" step="1" value={entry.amount} onChange={e=>setEntry({...entry,amount:e.target.value})}/></label><label>Date<input required type="date" value={entry.date} onChange={e=>setEntry({...entry,date:e.target.value})}/></label>{entry.kind==="versement"&&<label>Référence bancaire / transaction<input required minLength={3} value={entry.reference} onChange={e=>setEntry({...entry,reference:e.target.value})}/></label>}<button className="btn goldBtn" disabled={saving}>{saving?"Enregistrement…":"Valider l’opération"}</button></form>}
    </article>;

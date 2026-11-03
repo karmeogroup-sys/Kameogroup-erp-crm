@@ -17,7 +17,7 @@ begin
  values(new.payment_date,'debit','Acquisition immobilière',
  'Versement acquisition '||new.acquisition_id::text,new.amount,
  'RE_ACQ_PAYMENT:'||new.id::text,new.external_reference,new.created_by)
- on conflict do nothing;
+ on conflict (reference) where reference like 'RE_ACQ_PAYMENT:%' do nothing;\n if not found then\n  raise exception 'Écriture comptable déjà existante pour ce paiement';\n end if;
  return new;
 end; $$;
 revoke all on function public.re_sync_acquisition_payment_accounting() from public,anon,authenticated;
